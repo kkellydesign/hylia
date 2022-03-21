@@ -19,6 +19,11 @@
 {% block content %}
   <main id="main-content" tabindex="-1">
     {% include "partials/components/intro.njk" %}
+    
+    <div class="[ inner-wrapper ] [ sf-flow ]">
+      {% image 'src/images/demo-image-1.jpg', 'testing alt tag' %}
+    </div>
+    
     {% include "partials/components/post-list.njk" %}
     {% include "partials/components/pagination.njk" %}
   </main>

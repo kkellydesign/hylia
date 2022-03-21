@@ -11,6 +11,9 @@ const w3DateFilter = require('./src/filters/w3-date-filter.js');
 const htmlMinTransform = require('./src/transforms/html-min-transform.js');
 const parseTransform = require('./src/transforms/parse-transform.js');
 
+// Import eleventy-img
+const Image = require("@11ty/eleventy-img");
+
 // Import data files
 const site = require('./src/_data/site.json');
 
@@ -70,6 +73,50 @@ module.exports = function(config) {
       }
     }
   });
+
+
+  // eleventy-img test
+  async function imageShortcode(src, alt, sizes = "100vw") {
+    if(alt === undefined) {
+      // You bet we throw an error on missing alt (alt="" works okay)
+      throw new Error(`Missing \`alt\` on myImage from: ${src}`);
+    }
+  
+    let metadata = await Image(src, {
+      widths: [300, 600],
+      formats: ['webp', 'jpeg'],
+      urlPath: "./images/",
+      outputDir: "./dist/images/",
+      loading: "lazy",
+      decoding: "async",
+      cacheOptions: {
+        duration: "1d",
+        directory: ".cache",
+        removeUrlQueryParams: false,
+      }
+    });
+
+    let lowsrc = metadata.jpeg[0];
+    let highsrc = metadata.jpeg[metadata.jpeg.length - 1];
+  
+    let data = metadata.jpeg[metadata.jpeg.length - 1];
+    return `<picture>
+    ${Object.values(metadata).map(imageFormat => {
+      return `  <source type="${imageFormat[0].sourceType}" srcset="${imageFormat.map(entry => entry.srcset).join(", ")}" sizes="${sizes}">`;
+    }).join("\n")}
+      <img
+        src="${lowsrc.url}"
+        width="${highsrc.width}"
+        alt="${alt}"
+        loading="lazy"
+        decoding="async">
+    </picture>`;
+  }
+  
+  // Don't forget the exports...
+  config.addNunjucksAsyncShortcode("image", imageShortcode);
+  config.addLiquidShortcode("image", imageShortcode);
+  config.addJavaScriptFunction("image", imageShortcode);
 
   return {
     dir: {
